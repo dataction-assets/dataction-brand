@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Signature Generator</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+      
+      /* UI Only - Does not affect the copied signature */
+      body {
+        margin: 0;
+        padding: 40px 20px;
+        font-family: "Poppins", Arial, Helvetica, sans-serif;
+        background-color: #f4f6f9;
+        color: #333;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+      h2 {
+        margin-top: 0;
+        color: #093227;
+        border-bottom: 2px solid #47cd89;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+        text-align: center; /* Aligned the title to the middle */
+      }
+      
+      /* Flexbox Grid Split */
+      .generator-grid {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 30px;
+        align-items: flex-start;
+      }
+      
+      /* Rebalanced ratios: Expanded image side and reduced form side horizontally */
+      .image-side {
+        flex: 1.1;
+        min-width: 280px;
+        display: flex;
+        flex-direction: column;
+      }
+      .form-side {
+        flex: 0.9;
+        min-width: 280px;
+      }
+      .guideline-img {
+        width: 100%;
+        max-width: 480px;
+        height: auto;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        object-fit: contain;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        font-size: 13px;
+        color: #444;
+      }
+      input[type="text"], input[type="email"], input[type="tel"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 14px;
+      }
+      input:focus {
+        border-color: #47cd89;
+        outline: none;
+      }
+      .btn-copy {
+        background-color: #47cd89;
+        color: #093227;
+        border: none;
+        padding: 12px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 15px;
+        transition: background 0.2s ease;
+      }
+      .btn-copy:hover {
+        background-color: #39a46e;
+      }
+      .preview-title {
+        margin-top: 30px;
+        font-weight: 600;
+        color: #666;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .preview-box {
+        border: 1px dashed #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        background: #fff;
+        overflow-x: auto;
+      }
+      .alert {
+        display: none;
+        padding: 10px;
+        margin-top: 15px;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: 600;
+      }
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      /* Responsive handling for mobile screens */
+      @media (max-width: 768px) {
+        .generator-grid {
+          flex-direction: column-reverse;
+          gap: 20px;
+        }
+        .guideline-img {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <h2>Dataction Signature Generator</h2>
+      
+      <!-- Split Container Grid Wrapper -->
+      <div class="generator-grid">
+        
+        <!-- Left Side: Guideline Documentation Image -->
+        <div class="image-side">
+          <img 
+            src="https://raw.githubusercontent.com/dataction-assets/dataction-brand/main/guidelines.png" 
+            alt="Signature Setup Guidelines" 
+            class="guideline-img"
+          />
+        </div>
+
+        <!-- Right Side: Input Fields & Actions -->
+        <div class="form-side">
+          <div class="form-group">
+            <label for="input-name">Full Name</label>
+            <input type="text" id="input-name" placeholder="Name Surname" oninput="updateSignature()" />
+          </div>
+          
+          <div class="form-group">
+            <label for="input-designation">Designation</label>
+            <input type="text" id="input-designation" placeholder="Your Designation" oninput="updateSignature()" />
+          </div>
+          
+          <div class="form-group">
+            <label for="input-phone">Phone Number</label>
+            <input type="tel" id="input-phone" placeholder="+91 0000000000" value="+91 " oninput="updateSignature()" />
+          </div>
+          
+          <div class="form-group">
+            <label for="input-email">Email Address</label>
+            <input type="email" id="input-email" placeholder="email@dataction.org" oninput="updateSignature()" />
+          </div>
+
+          <button class="btn-copy" onclick="copySignature()">Copy Signature</button>
+          <div id="alert-msg" class="alert alert-success">Signature copied! Paste it directly into Outlook settings (Ctrl+V).</div>
+        </div>
+
+      </div>
+
+      <div class="preview-title">Live Preview:</div>
+      
+      <!-- Signature Target Container -->
+      <div class="preview-box" id="signature-container">
+        <!-- Strictly Inline Styled Table Element For Outlook Rendering -->
+        <table cellpadding="0" cellspacing="0" border="0" style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.5; background-color: #ffffff; color: #161616; width: 100%; max-width: 600px; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 16px; font-family: 'Poppins', Arial, Helvetica, sans-serif;">
+              <!-- Logo -->
+              <img
+                src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/companylogo.png"
+                alt="Dataction Logo"
+                width="210"
+                style="width: 210px; height: auto; margin-bottom: 8px; display: block; border: 0;"
+              />
+
+              <!-- Name and Title -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 0; margin: 0; font-family: 'Poppins', Arial, Helvetica, sans-serif;">
+                    <div id="sig-name" style="font-weight: 600; color: #161616; font-size: 16px; margin: 0; padding: 0; line-height: 1.2; mso-line-height-rule: exactly;">Name Surname</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0; margin: 0; font-family: 'Poppins', Arial, Helvetica, sans-serif; padding-top: 2px;">
+                    <div id="sig-designation" style="color: #8d8d8d; font-size: 14px; margin: 0; padding: 0; line-height: 1.2; mso-line-height-rule: exactly;">Your Designation</div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Contact Information -->
+              <div style="margin-bottom: 4px; font-family: 'Poppins', Arial, Helvetica, sans-serif; height: 20px; line-height: 20px;">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/phone.png"
+                  alt="Phone"
+                  width="16"
+                  height="16"
+                  style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; border: 0;"
+                />
+                <a id="sig-phone" href="tel:+91 0000000000" style="color: #47cd89; text-decoration: none; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; vertical-align: middle;">+91 0000000000</a>
+              </div>
+              
+              <div style="margin-bottom: 4px; font-family: 'Poppins', Arial, Helvetica, sans-serif; height: 20px; line-height: 20px;">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/mail.png"
+                  alt="Email"
+                  width="16"
+                  height="16"
+                  style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; border: 0;"
+                />
+                <a id="sig-email" href="mailto:email@dataction.org" style="color: #47cd89; text-decoration: none; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; vertical-align: middle;">email@dataction.org</a>
+              </div>
+              
+              <div style="margin-bottom: 4px; font-family: 'Poppins', Arial, Helvetica, sans-serif; height: 20px; line-height: 20px;">
+                <img
+                  src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/web.png"
+                  alt="Website"
+                  width="16"
+                  height="16"
+                  style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; border: 0;"
+                />
+                <a
+                  href="http://www.dataction.co"
+                  target="_blank"
+                  style="color: #47cd89; text-decoration: none; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; vertical-align: middle;"
+                  >www.dataction.co</a
+                >
+              </div>
+              
+              <!-- Social Media Icons Table -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 16px; margin-bottom: 24px; border-collapse: collapse;">
+                <tr>
+                  <td valign="middle" style="padding-right: 12px; border: 0;">
+                    <a href="https://www.linkedin.com/company/dataction-official/mycompany/" target="_blank" style="text-decoration: none;">
+                      <img src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/linkedin.png" alt="LinkedIn" width="28" height="28" style="display: block; border: none;" />
+                    </a>
+                  </td>
+                  <td valign="middle" style="padding-right: 12px; border: 0;">
+                    <a href="https://twitter.com/DATACTION" target="_blank" style="text-decoration: none;">
+                      <img src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/x.png" alt="Twitter" width="28" height="28" style="display: block; border: none;" />
+                    </a>
+                  </td>
+                  <td valign="middle" style="padding-right: 12px; border: 0;">
+                    <a href="https://www.facebook.com/DatactionAnalytics/" target="_blank" style="text-decoration: none;">
+                      <img src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/facebook.png" alt="Facebook" width="28" height="28" style="display: block; border: none;" />
+                    </a>
+                  </td>
+                  <td valign="middle" style="padding-right: 12px; border: 0;">
+                    <a href="https://www.instagram.com/dataction_official" style="text-decoration: none;">
+                      <img src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/instagram.png" alt="Instagram" width="28" height="28" style="display: block; border: none;" />
+                    </a>
+                  </td>
+                  <td valign="middle" style="border: 0;">
+                    <a href="https://www.youtube.com/@datactionanalytics8172" target="_blank" style="text-decoration: none;">
+                      <img src="https://cdn.jsdelivr.net/gh/dataction-assets/dataction-brand@main/youtube.png" alt="YouTube" width="28" height="28" style="display: block; border: none;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Company Tagline Box -->
+              <div
+                style="
+                  color: #093227;
+                  background-color: #47cd89;
+                  padding: 16px;
+                  max-width: 568px;
+                  font-size: 18px;
+                  font-weight: 400;
+                  margin: 0;
+                  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+                "
+              >
+                Approach is what makes us different.
+              </div>
+            
+              <!-- Office Address Box -->
+              <div
+                style="
+                  color: #616161;
+                  background-color: #f5f5f5;
+                  padding: 16px;
+                  border-bottom: 1px solid #ececec;
+                  max-width: 568px;
+                  margin-bottom: 16px;
+                  font-size: 14px;
+                  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+                "
+              >
+                Unit No. 1, 6th Floor, Phoenix Fountainhead, Tower 1, Phoenix Market
+                City, Viman Nagar, Pune (India), 411014
+              </div>
+
+              <!-- Confidentiality Notice -->
+              <div
+                style="
+                  font-size: 12px;
+                  color: #8d8d8d;
+                  max-width: 600px;
+                  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+                  line-height: 1.5;
+                "
+              >
+                <strong style="color: #8d8d8d;">Confidentiality notice & disclaimer:</strong><br />
+                This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorised review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Dataction Analytics Pvt Ltd email addresses may be monitored.
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+      function updateSignature() {
+        const name = document.getElementById('input-name').value || 'Name Surname';
+        const designation = document.getElementById('input-designation').value || 'Your Designation';
+        const phone = document.getElementById('input-phone').value || '+91 0000000000';
+        const email = document.getElementById('input-email').value || 'email@dataction.org';
+
+        document.getElementById('sig-name').innerText = name;
+        document.getElementById('sig-designation').innerText = designation;
+        document.getElementById('sig-phone').innerText = phone;
+        document.getElementById('sig-email').innerText = email;
+
+        document.getElementById('sig-phone').href = 'tel:' + phone;
+        document.getElementById('sig-email').href = 'mailto:' + email;
+      }
+
+      async function copySignature() {
+        const signatureElement = document.getElementById('signature-container').innerHTML;
+        
+        try {
+          const blobHtml = new Blob([signatureElement], { type: "text/html" });
+          const blobText = new Blob([document.getElementById('signature-container').innerText], { type: "text/plain" });
+          
+          const data = [new ClipboardItem({
+            "text/html": blobHtml,
+            "text/plain": blobText
+          })];
+          
+          await navigator.clipboard.write(data);
+          
+          const alertBox = document.getElementById('alert-msg');
+          alertBox.style.display = 'block';
+          setTimeout(() => {
+            alertBox.style.display = 'none';
+          }, 4000);
+          
+        } catch (err) {
+          console.error('Failed to copy formatting: ', err);
+          alert('Failed to copy. Please manually select the template preview, copy, and paste.');
+        }
+      }
+    </script>
+  </body>
+</html>
